@@ -340,6 +340,9 @@ EN = {
     # Main window
     'Systemowy (jasny / ciemny)': 'System (light / dark)',
     'Aurora (jasny / ciemny)': 'Aurora (light / dark)',
+    'baza tras podaje {0} → {1}, ale samolot jest daleko od tej trasy': 'the route database says {0} → {1}, but the aircraft is far from that route',
+    'Na lotnisku {0} {1}': 'At {0} {1} airport',
+    'Blisko lotniska {0} {1} — start lub lądowanie': 'Near {0} {1} airport — taking off or landing',
     'Wygląd': 'Appearance',
     'Importuj podróże (arkusz / CSV)…': 'Import trips (spreadsheet / CSV)…',
     'Zapisz szablon importu…': 'Save import template…',

@@ -1,4 +1,4 @@
-VERSION = "1.5.5"
+VERSION = "1.5.7"
 RELEASE_DATE = "2026-11-12"
 APP_ID = "com.jgu.LinuxSkyTrack"
 APP_NAME = "Linux-SkyTrack"

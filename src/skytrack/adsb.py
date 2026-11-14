@@ -279,3 +279,20 @@ def resolve_route(route, airports, pos=None):
         return (distance_km(pos[0], pos[1], a.lat, a.lon) + distance_km(pos[0], pos[1], b.lat, b.lon)
                 - distance_km(a.lat, a.lon, b.lat, b.lon))
     return min(legs, key=detour)
+
+
+def leg_plausible(a, b, pos, alt_m=None, on_ground=False):
+    """Does an aircraft at pos plausibly fly a -> b? Route databases map a callsign to a route, but airlines
+    reuse callsigns (KLM73D was listed AMS -> MAD while landing in Warsaw). Rejected when the aircraft is far
+    off the line between the airports, or low / on the ground far from both of them."""
+    if not (a and b and pos):
+        return True
+    from .geo import distance_km
+    da = distance_km(pos[0], pos[1], a.lat, a.lon)
+    db_ = distance_km(pos[0], pos[1], b.lat, b.lon)
+    dab = distance_km(a.lat, a.lon, b.lat, b.lon)
+    if da + db_ - dab > max(250.0, 0.35 * dab):
+        return False
+    if (on_ground or (alt_m is not None and alt_m < 1500)) and min(da, db_) > 60:
+        return False
+    return True

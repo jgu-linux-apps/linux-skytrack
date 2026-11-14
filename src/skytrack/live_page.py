@@ -339,6 +339,10 @@ class LivePage(Adw.Bin):
         if p is None:
             return
         a, b = adsb.resolve_route(route, self.app.airports, (p.lat, p.lon))
+        doubt = None
+        if a and b and not adsb.leg_plausible(a, b, (p.lat, p.lon), p.alt_m, p.on_ground):
+            doubt = _('baza tras podaje {0} → {1}, ale samolot jest daleko od tej trasy').format(a.iata, b.iata)
+            a = b = None
         if not hasattr(self, "_routes"):
             self._routes = {}
         self._routes[hexcode] = (a, b, route.get("source", ""))
@@ -350,9 +354,17 @@ class LivePage(Adw.Bin):
             r = {"from": a.to_js(), "to": b.to_js()}
         else:
             line, r = _('Trasa nieznana'), None
+        extra = [f"({doubt})"] if doubt else []
+        low = p.on_ground or (p.alt_m is not None and p.alt_m < 1500)
+        if low and hasattr(self.app.airports, "nearest"):
+            near = self.app.airports.nearest(p.lat, p.lon)
+            if near:
+                from .wrapped import city
+                extra.append((_('Na lotnisku {0} {1}') if p.on_ground else _('Blisko lotniska {0} {1} — start lub lądowanie'))
+                             .format(near.iata, city(near)))
         subtitle = route.get("airline") or self._airline_name(p.callsign)
         self.map.plane_info({"hex": hexcode, "title": p.callsign or hexcode.upper(), "subtitle": subtitle,
-                             "lines": [line] + self._plane_lines(p), "route": r, **self._track_action(hexcode)})
+                             "lines": [line] + extra + self._plane_lines(p), "route": r, **self._track_action(hexcode)})
 
     def _track_action(self, hexcode):
         s = self.tracker.s

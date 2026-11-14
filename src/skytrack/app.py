@@ -303,7 +303,24 @@ def _crash_log():
     main._crash_file = f   # keep it open for the whole run
 
 
+def _gc_on_main_thread():
+    """Python's cyclic garbage collector runs in whichever thread happens to allocate. When it ran in a
+    background thread (e.g. the ADS-B traffic worker) and found a dead WebKit object in a reference cycle, the
+    object was unreffed off the main thread and WebKitGTK aborted the app (crash while panning the satellite
+    map, 1.5.5). Automatic collection is switched off and done on the GTK main loop instead."""
+    import gc
+    gc.disable()
+    state = {"n": 0}
+
+    def collect():
+        state["n"] += 1
+        gc.collect(2 if state["n"] % 10 == 0 else 0)
+        return True
+    GLib.timeout_add(1000, collect)
+
+
 def main():
     _crash_log()
+    _gc_on_main_thread()
     app = SkyTrackApp()
     return app.run(sys.argv)

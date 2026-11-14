@@ -128,6 +128,18 @@ class AirportDB:
             self._index.append((ap, _norm(f"{city} {pl} {alias} {name} {en} {ap.country}"),
                                 _norm(f"{pl} {alias}")))
 
+    def nearest(self, lat, lon, max_km=25):
+        """The closest airport within max_km (scheduled-service airports first), or None."""
+        from .geo import distance_km
+        best, best_d = None, max_km
+        for ap in self.by_iata.values():
+            if abs(ap.lat - lat) > 0.5 or abs(ap.lon - lon) > 0.8:
+                continue
+            d = distance_km(lat, lon, ap.lat, ap.lon) - (3 if self.popularity.get(ap.iata) else 0)
+            if d < best_d:
+                best, best_d = ap, d
+        return best
+
     def country_name(self, cc):
         return self.countries_pl.get(cc) or self.countries_en.get(cc, cc)
 

@@ -6,9 +6,21 @@ A flight log and live flight tracker for Ubuntu. Log your trips, see them on a m
 
 Part of the **JGu Linux Apps** series. Created by: JGu · Supported by Claude.
 
-![icon](icons/hicolor/scalable/apps/linux-skytrack.svg)
+![icon](src/icons/hicolor/scalable/apps/linux-skytrack.svg)
 
 ## Version history
+
+### 1.5.7 (2026-11-14): splash icon, Aurora on the Live tab, wrong routes
+
+- The start-up screen shows the new app icon (globe and plane).
+- Aurora: the left panel of the Live tab now uses the theme colours. It stayed Adwaita grey because `@sidebar_bg_color` does not follow the theme's CSS variables on libadwaita 1.6+. The other themes were not affected; System, Flighty and Matrix were checked.
+- Live map:
+  - a route from the database is no longer shown when it does not match where the aircraft is (airlines reuse callsigns: KLM73D was listed as AMS → MAD while landing in Warsaw). Such a plane shows "Route unknown" with a short explanation;
+  - a plane that is low or on the ground shows the nearby airport ("Near WAW Warsaw — taking off or landing").
+
+### 1.5.6 (2026-11-14): crash fix when panning the map
+
+- Fixed a crash while panning the map, most often in satellite view. Python's garbage collector ran in a background thread (ADS-B traffic) and released a WebKit object there, and WebKitGTK aborts when its objects are released off the main thread. The garbage collection now runs only on the main loop.
 
 ### 1.5.5 (2026-11-14): new app icon
 

@@ -573,6 +573,10 @@ class Tracker(GObject.Object):
             if self.s is not sess or (sess.origin is not None and sess.dest is not None):
                 return
             a, b = adsb.resolve_route(route, self.airports, pos)
+            st = sess.state
+            if a and b and not adsb.leg_plausible(a, b, pos, getattr(st, "alt_m", None) if st else None,
+                                                  bool(getattr(st, "on_ground", False)) if st else False):
+                a = b = None                  # the database route does not match where the aircraft is
             if a and b and (sess.dest is None or sess.dest.iata == b.iata):
                 sess.origin, sess.dest = a, b
                 sess.route_source = route.get("source") or "adsbdb"

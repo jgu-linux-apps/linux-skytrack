@@ -66,6 +66,9 @@ button.suggested-action {
 }
 
 COMMON = """
+/* side panels (Trips, Live): @sidebar_bg_color does not follow the CSS variables on libadwaita >= 1.6,
+   so the Live panel stayed Adwaita grey under Aurora */
+.trip-sidebar { background-color: var(--sidebar-bg-color); }
 .navigation-sidebar > row, listview > row { border-radius: 11px; transition: box-shadow 150ms, background 150ms; }
 .navigation-sidebar > row { margin: 1px 6px; }
 """
