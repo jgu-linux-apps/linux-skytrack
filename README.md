@@ -1,14 +1,26 @@
 # Linux-SkyTrack (linux-skytrack)
 
-**Current version: 1.5.5 (2026-11-14)**
+**Current version: 1.6.0 (2026-11-22)**
 
-A flight log and live flight tracker for Ubuntu. Log your trips, see them on a map (street, satellite or an offline outline map) with pins on every airport you have visited, and let SkyTrack count the kilometres and build statistics per year, month and day. Watch all air traffic around you live, listen to the control tower, track any flight by its number, get a poster of your year in the air, and keep backups on your disk, in Google Drive or in iCloud Drive.
+A flight log and live flight tracker for Ubuntu. Log your trips, see them on a map (street, satellite or an offline outline map) with pins on every airport you have visited, and let SkyTrack count the kilometres and build statistics per year, month and day. Watch all air traffic around you live, listen to the control tower, track any flight by its number, add a flight by scanning its boarding pass, get a delay forecast before you fly, get a poster of your year in the air, and keep backups on your disk, in Google Drive or in iCloud Drive.
 
 Part of the **JGu Linux Apps** series. Created by: JGu · Supported by Claude.
 
 ![icon](src/icons/hicolor/scalable/apps/linux-skytrack.svg)
 
 ## Version history
+
+### 1.6.0 (2026-11-22): boarding pass scan, flight status
+
+- **Add a flight from its boarding pass** (camera button in the header bar, *Menu → Add from a boarding pass…* or `Ctrl+B`). Hold the code on a paper pass or on your phone (Wallet, the airline app) up to the laptop camera, drop the PDF from the email or a screenshot onto the window, or paste an image with `Ctrl+V`. Every airline puts the same IATA text (BCBP) into the Aztec, PDF417 or QR code: SkyTrack reads the route, flight number, date, seat, cabin and booking reference.
+  - A flight that is already in your log (same day and route, or same flight number) gets the seat, flight number and booking reference; nothing is duplicated.
+  - A new flight opens the trip dialog filled in, so you only add the times (they are not in the code). A pass with several legs (KRK → FRA → JFK) adds all of them.
+  - The code has no year: SkyTrack uses the pass's date of issue when the airline included it, otherwise the date at most 60 days ahead (check-in opens no earlier) or else the most recent past one, so an old pass from last summer lands in last summer.
+  - Codes are read by the ZXing library already on Ubuntu (`libzxing4`); PDFs are rendered with `pdftoppm` (`poppler-utils`); the camera uses GStreamer (`gstreamer1.0-gtk4`). All three are recommended by the package. Nothing is sent anywhere.
+- **Flight status before departure** in *Plans*, for a planned flight with a flight number and time, from 4 hours before departure, checked every 5 minutes from free ADS-B data:
+  - **delay forecast**: the incoming aircraft is usually the paired flight with the neighbouring number (LO 382 CFU → WAW flies the plane for LO 381 WAW → CFU). While it is still in the air towards your airport, its landing time plus a minimum turnaround (35 min, 70 min on flights over 3000 km) gives the earliest realistic departure. The card shows *Forecast +40 min* with where the plane is now, and a notification comes when the forecast delay reaches 15 minutes (and again when it grows by another 15);
+  - **aircraft at the airport**: the crew sets the flight number about 30–40 minutes before departure, so the aircraft appears at your airport (notification once), then *Departed*;
+  - this is a forecast, not the airline's word: the gate and the official delay are not in ADS-B data. Live tracking with take-off, delay and landing notifications still starts by itself on the day of the flight.
 
 ### 1.5.7 (2026-11-14): splash icon, Aurora on the Live tab, wrong routes
 
@@ -198,7 +210,8 @@ Part of the **JGu Linux Apps** series. Created by: JGu · Supported by Claude.
 - **Map:** great-circle arcs, pins with visit counts, street / satellite / offline outline layers, visited countries highlighted.
 - **Statistics:** kilometres, flights, time in the air, airports, countries, longest flight, around the Earth / to the Moon, year → month → day breakdown, visited countries, **28 badges**.
 - **Calendar:** planned flights go to Linux iCloud Calendar with one click (📅 Add to Calendar).
-- **Plans:** a calculator for distance, flight time, local arrival and return times and time zones; upcoming trips with countdowns; optional iCloud album.
+- **Boarding pass scan:** add or complete a flight from the code on its boarding pass (camera, PDF, screenshot, `Ctrl+V`).
+- **Plans:** a calculator for distance, flight time, local arrival and return times and time zones; upcoming trips with countdowns and a delay forecast from the incoming aircraft; optional iCloud album.
 - **Live:** all air traffic in view, from → to routes, tracking by flight number or callsign, automatic tracking of your flights with notifications.
 - **LIVE tower radio:** the official LiveATC.net page of a chosen tower in a mini window that plays on every tab and stops when the app is minimised; check for new towers; own sources.
 - **Summary:** a poster of your year (or all years), saved as PNG.
@@ -227,7 +240,7 @@ linux-skytrack --add      # open the "New trip" dialog right away
 SKYTRACK_LANG=en linux-skytrack   # force English (or pl for Polish)
 ```
 
-Keyboard shortcuts: `Ctrl+N` new trip, `Ctrl+1` trips, `Ctrl+2` plans, `Ctrl+3` statistics, `Ctrl+4` live, `Ctrl+5` summary, `Ctrl+I` import, `Ctrl+E` export CSV, `Ctrl+L` lock, `Ctrl+W` close the window, `Ctrl+Q` quit.
+Keyboard shortcuts: `Ctrl+N` new trip, `Ctrl+B` add from a boarding pass, `Ctrl+1` trips, `Ctrl+2` plans, `Ctrl+3` statistics, `Ctrl+4` live, `Ctrl+5` summary, `Ctrl+I` import, `Ctrl+E` export CSV, `Ctrl+L` lock, `Ctrl+W` close the window, `Ctrl+Q` quit.
 
 ## Importing your history
 
@@ -245,6 +258,7 @@ Airports are recognised by IATA / ICAO code, “(GDN/EPGD)” or city name. Dupl
 - **Air traffic** and **tracked flights** come from the community ADS-B networks adsb.lol, airplanes.live and adsb.fi — free, no key, no daily limit. SkyTrack asks only while the *Live* tab is open (every 10 s for the map, every 30 s by default for a tracked flight) and identifies itself with its User-Agent.
 - **Routes (from → to)** come from the routeset services of adsb.im / adsb.lol and from adsbdb.com, cached for a day. They are based on schedules and can be out of date when airlines change flight numbers, so SkyTrack always says where a route came from.
 - **OpenSky Network** is a fall-back. Without an account it allows 400 requests a day; a free OpenSky API client (Account → API client) gives 4,000. The client id and secret are stored in `~/.config/linux-skytrack/opensky.json` (mode 600).
+- **Flight status in Plans** uses the same ADS-B networks and route services: your flight's callsign and the neighbouring flight numbers, only from 4 hours before a planned departure, every 5 minutes while SkyTrack is open.
 - Positions come from volunteers' receivers: over oceans and in some regions there may be none (“No signal”).
 
 ## LIVE tower radio
@@ -289,7 +303,7 @@ sudo apt install python3-gi python3-gi-cairo python3-cairo gir1.2-gtk-4.0 gir1.2
 ./linux-skytrack
 ```
 
-`tools/build_deb.sh` builds the .deb into `dist/`. WebKit developer tools for the map: `SKYTRACK_DEVTOOLS=1 ./linux-skytrack`.
+`tools/build_deb.sh` builds the .deb into `dist/`. Unit tests: `python3 -m unittest discover -s tests`. `SKYTRACK_CAMERA_SRC` replaces the camera with another GStreamer source (for example `filesrc location=pass.png ! pngdec ! imagefreeze is-live=true`). WebKit developer tools for the map: `SKYTRACK_DEVTOOLS=1 ./linux-skytrack`.
 
 Data files are rebuilt with the scripts in `tools/`:
 

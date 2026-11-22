@@ -39,7 +39,7 @@ Priority: optional
 Architecture: all
 Installed-Size: $SIZE
 Depends: python3 (>= 3.10), python3-gi, python3-gi-cairo, python3-cairo, gir1.2-pango-1.0, gir1.2-gtk-4.0, gir1.2-adw-1 (>= 1.5), gir1.2-webkit-6.0, librsvg2-common, tzdata, pkexec | policykit-1
-Recommends: python3-openpyxl, gstreamer1.0-plugins-good, gstreamer1.0-libav
+Recommends: python3-openpyxl, gstreamer1.0-plugins-good, gstreamer1.0-libav, gstreamer1.0-gtk4, gir1.2-gst-plugins-base-1.0, libzxing4 | libzxing3, poppler-utils
 Suggests: linux-icloud-photos (>= 0.16.0), libreoffice-calc, gvfs-backends, gnome-online-accounts
 Maintainer: JGu <noreply@github.com>
 Homepage: https://github.com/jgu-linux-apps/linux-skytrack
@@ -49,7 +49,9 @@ Description: SkyTrack - flight log, live tracking and maps for Ubuntu
  map), and get kilometres flown with statistics per year, month and day and a
  yearly summary poster. See all aircraft in view with from/to routes and
  track flights live by flight number (adsb.lol, airplanes.live, adsb.fi,
- OpenSky), with notifications on take-off, delay and landing. One-click and
+ OpenSky), with notifications on take-off, delay and landing. Add flights by
+ scanning the boarding pass (camera, PDF or screenshot) and get a delay forecast
+ from the incoming aircraft before departure. One-click and
  weekly automatic backups. Polish and English interface. With Linux iCloud
  Photos 0.15.1+ a trip can be linked to an iCloud album.
  Created by: JGu. Supported by Claude.

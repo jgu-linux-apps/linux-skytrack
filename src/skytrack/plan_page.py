@@ -9,7 +9,7 @@ from gi.repository import Adw, GObject, Gtk
 from . import geo, photos, stats
 from .db import Trip
 from .trip_dialog import AirportRow, DateRow, parse_time
-from .widgets import PassCard
+from .widgets import PassCard, add_status
 from .i18n import IS_PL, _, plural
 
 
@@ -22,9 +22,10 @@ class PlanPage(Gtk.ScrolledWindow):
         "calendar": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
     }
 
-    def __init__(self, airports):
+    def __init__(self, airports, status=None):
         super().__init__(hscrollbar_policy=Gtk.PolicyType.NEVER)
         self.airports = airports
+        self.status = status
         clamp = Adw.Clamp(maximum_size=860, tightening_threshold=600)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24,
                       margin_top=24, margin_bottom=32, margin_start=16, margin_end=16)
@@ -290,6 +291,8 @@ class PlanPage(Gtk.ScrolledWindow):
         self.upcoming.append(info)
         for i, caption in cards:
             card = PassCard(i, caption=caption)
+            if self.status is not None:
+                add_status(card, self.status.get(i.trip.id), i.origin)
             if caption and caption.startswith(_('Tam i z powrotem')):
                 card.ret_btn.set_visible(False)
             card.connect("edit", lambda _c, tr: self.emit("edit", tr))

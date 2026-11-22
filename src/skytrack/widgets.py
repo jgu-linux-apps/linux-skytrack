@@ -168,6 +168,34 @@ class PassCard(Gtk.Box):
             self.append(row)
 
 
+def add_status(card, st, origin):
+    """Live status line under the pass (flightstatus): badge + one line, inserted above the buttons."""
+    from . import flightstatus
+    d = flightstatus.describe(st, origin)
+    if d is None:
+        return None
+    badge_text, css, line = d
+    row = Gtk.Box(spacing=8, margin_top=4)
+    row.add_css_class("pass-status")
+    icon = Gtk.Image(icon_name="airplane-mode-symbolic")
+    icon.add_css_class(css)
+    row.append(icon)
+    badge = Gtk.Label(label=badge_text)
+    badge.add_css_class("heading")
+    badge.add_css_class(css)
+    row.append(badge)
+    lbl = Gtk.Label(label=line, xalign=0, hexpand=True, wrap=True)
+    lbl.add_css_class("caption")
+    lbl.add_css_class("dim-label")
+    row.append(lbl)
+    row.set_tooltip_text(_('Prognoza z danych ADS-B (bez API linii): samolot obsługujący lot i jego przewidywane lądowanie. Gate i oficjalne opóźnienie podaje tylko linia.'))
+    if card.buttons is not None:
+        card.insert_child_after(row, card.buttons.get_prev_sibling())
+    else:
+        card.append(row)
+    return row
+
+
 def add_card_button(card, label, tooltip, callback):
     if card.buttons is None:
         return None

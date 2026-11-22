@@ -1,5 +1,5 @@
-VERSION = "1.5.7"
-RELEASE_DATE = "2026-11-12"
+VERSION = "1.6.0"
+RELEASE_DATE = "2026-11-22"
 APP_ID = "com.jgu.LinuxSkyTrack"
 APP_NAME = "Linux-SkyTrack"
 REPO_URL = "https://github.com/jgu-linux-apps/linux-skytrack"

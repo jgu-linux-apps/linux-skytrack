@@ -124,6 +124,10 @@ class MainWindow(Adw.ApplicationWindow):
         add = Gtk.Button(icon_name="list-add-symbolic", tooltip_text=_('Dodaj podróż (Ctrl+N)'))
         add.set_action_name("app.add-trip")
         header.pack_start(add)
+        scan = Gtk.Button(icon_name="camera-photo-symbolic",
+                          tooltip_text=_('Dodaj z karty pokładowej: kamera, PDF lub zrzut (Ctrl+B)'))
+        scan.set_action_name("app.scan-pass")
+        header.pack_start(scan)
 
         self.year_model = Gtk.StringList()
         self.year_dd = Gtk.DropDown(model=self.year_model, tooltip_text=_('Okres'))
@@ -138,6 +142,7 @@ class MainWindow(Adw.ApplicationWindow):
         looks.append("Matrix", "app.theme::matrix")
         menu.append_submenu(_('Wygląd'), looks)
         data = Gio.Menu()
+        data.append(_('Dodaj z karty pokładowej…'), "app.scan-pass")
         data.append(_('Importuj podróże (arkusz / CSV)…'), "app.import")
         data.append(_('Zapisz szablon importu…'), "app.save-template")
         data.append(_('Eksportuj podróże do CSV…'), "app.export")
@@ -230,7 +235,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.stack.add_titled_with_icon(self.paned, "trips", _('Podróże'), "skytrack-route-symbolic")
 
         # Plans page ------------------------------------------------------------------------
-        self.plan_page = PlanPage(app.airports)
+        self.plan_page = PlanPage(app.airports, status=app.status)
+        app.status.connect("changed", lambda *_a: self.plan_page.refresh(self.all_infos))
         self.plan_page.connect("plan-trip", lambda _p, t, back, album: self.plan_trip(t, back, album))
         self.plan_page.connect("edit", lambda _p, t: self.edit_trip(t))
         self.plan_page.connect("return-flight", lambda _p, t: self.return_flight(t))
@@ -726,6 +732,41 @@ class MainWindow(Adw.ApplicationWindow):
             self._open_dialog(pair[0], return_trip=pair[1], title=_('Edytuj podróż'))
         else:
             self._open_dialog(trip, title=_('Edytuj lot'))
+
+    def scan_pass(self):
+        from .live import airlines
+        from .scan_dialog import ScanDialog
+        dlg = ScanDialog(self.app.airports, self.app.store.all(), airlines())
+        dlg.connect("scanned", self._on_scanned)
+        dlg.present(self)
+
+    def _on_scanned(self, _dlg, trips):
+        """Known flights get the seat / flight number / booking reference; a single new flight opens
+        the trip dialog (times are not on the pass); several new legs are saved at once."""
+        from . import bcbp
+        log = self.app.store.all()
+        updated, new = [], []
+        for t in trips:
+            hit = bcbp.find_match(log, t)
+            if hit is not None:
+                if bcbp.merge_into(hit, t):
+                    self.app.store.save(hit)
+                updated.append(hit)
+            else:
+                new.append(t)
+        if updated:
+            self.reload(select_id=updated[0].id)
+            self.toasts.add_toast(Adw.Toast(title=_('Uzupełniono z karty: {0}').format(
+                ", ".join(f"{t.origin} → {t.dest}" for t in updated)), timeout=4))
+        if len(new) == 1:
+            GLib.timeout_add(250, lambda: (self._open_dialog(new[0], _('Lot z karty pokładowej'),
+                                                             round_trip=False), False)[1])
+        elif new:
+            for t in new:
+                self.app.store.save(t)
+            self.reload(select_id=new[0].id)
+            self.toasts.add_toast(Adw.Toast(title=_('Dodano z karty: {0}').format(
+                " → ".join([new[0].origin] + [t.dest for t in new])), timeout=4))
 
     def return_flight(self, trip):
         self._open_dialog(Trip(origin=trip.dest, dest=trip.origin,

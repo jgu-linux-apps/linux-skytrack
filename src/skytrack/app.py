@@ -57,6 +57,8 @@ class SkyTrackApp(Adw.Application):
 
         for name, cb, accels in (
             ("add-trip", lambda *_: self._show(add=True), ["<Control>n"]),
+            ("scan-pass", lambda *_: (self._show(), self.window and self.window.when_unlocked(self.window.scan_pass)),
+             ["<Control>b"]),
             ("show", lambda *_: self._show(), []),
             ("show-trips", lambda *_: self._show(page="trips"), ["<Control>1"]),
             ("show-stats", lambda *_: self._show(page="stats"), ["<Control>3"]),
@@ -115,6 +117,10 @@ class SkyTrackApp(Adw.Application):
             self.tracker = live.Tracker(self.settings, self.airports)
             self.tracker.connect("event", lambda _t, kind, title, body:
                                  self.notify(f"live-{kind}", title, body))
+            from .flightstatus import StatusWatcher
+            self.status = StatusWatcher(self.settings, self.airports)
+            self.status.connect("event", lambda _w, tid, kind, title, body:
+                                self.notify(f"status-{tid}", title, body))
             sp.step(0.55, _('Przygotowanie mapy…'))
             GLib.timeout_add(30, self._load_step, 2)
         elif n == 2:
@@ -196,6 +202,7 @@ class SkyTrackApp(Adw.Application):
             return True
         from datetime import datetime
         from zoneinfo import ZoneInfo
+        self.status.check(self.window.all_infos)
         notified = list(self.settings["notified"] or [])
         changed = False
         for i in stats.planned(self.window.all_infos):
